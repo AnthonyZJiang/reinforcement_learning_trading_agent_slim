@@ -14,6 +14,7 @@ from tensorflow.keras import backend as K
 from collections import deque
 import pandas as pd
 from datetime import datetime as dt
+import time
 
 def Random_games(env, visualize, train_episodes=50, training_batch_size=1000, comment=""):
     '''The agent picks times to sell and buy the currency at random. This is the baseline method
@@ -180,6 +181,7 @@ class Shared_Model:
         '''
         return self.Actor(state)
 
+    @tf.function
     def critic_PPO2_loss(self, y_true, y_pred):
         '''Calculate the critic loss.
 
@@ -193,6 +195,7 @@ class Shared_Model:
         value_loss = K.mean((y_true - y_pred) ** 2)
         return value_loss
 
+    @tf.function
     def critic_predict(self, state):
         '''Predict the value using the critic model.
 
@@ -237,6 +240,7 @@ class Actor_Model:
         self.Actor = Model(inputs=X_input, outputs=output)
         self.Actor.compile(loss=self.ppo_loss, optimizer=optimizer(learning_rate=lr))
 
+    @tf.function
     def ppo_loss(self, y_true, y_pred):
         '''Calculate the PPO loss.
 
@@ -315,6 +319,7 @@ class Critic_Model:
         self.Critic = Model(inputs=X_input, outputs=value)
         self.Critic.compile(loss=self.critic_PPO2_loss, optimizer=optimizer(learning_rate=lr))
 
+    @tf.function
     def critic_PPO2_loss(self, y_true, y_pred):
         '''Calculate the critic loss.
 
@@ -328,6 +333,7 @@ class Critic_Model:
         value_loss = K.mean((y_true - y_pred) ** 2)
         return value_loss
 
+    @tf.function
     def predict(self, state):
         '''Predict the value using the critic model.
 
@@ -353,6 +359,7 @@ def train_agent(env, agent, visualize=False, train_episodes=50, training_batch_s
     total_average = deque(maxlen=100)
     best_average = -1000000000000000
     for episode in range(train_episodes):
+        start_time = time.time()
         state = env.reset(env_steps_size=training_batch_size)
 
         states, actions, rewards, predictions, dones, next_states = [], [], [], [], [], []
@@ -376,7 +383,7 @@ def train_agent(env, agent, visualize=False, train_episodes=50, training_batch_s
         agent.writer.add_scalar('Data/average net_worth', average, episode)
         agent.writer.add_scalar('Data/episode_orders', env.episode_orders, episode)
 
-        print(f'episode: {episode} net worth: {env.net_worth} n_orders: {env.episode_orders} reward: {env.episode_reward}')
+        print(f'episode: {episode} time cost: {time.time() - start_time:.2f}s net worth: {env.net_worth} n_orders: {env.episode_orders} reward: {env.episode_reward}')
         if train_episodes > len(total_average):
             if best_average < env.episode_reward and env.episode_orders > 2:
                 orders_data = pd.DataFrame.from_dict(env.trades)
