@@ -1,0 +1,10 @@
+pandas
+numpy
+tensorflow[and-cuda]
+gym
+matplotlib
+scikit-learn
+tensorboardX
+six
+mplfinance
+opencv-python
