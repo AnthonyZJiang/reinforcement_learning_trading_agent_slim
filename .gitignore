@@ -1,0 +1,12 @@
+runs/
+.venv/
+.vscode/
+.DS_Store
+
+__*__/
+
+*_Crypto_trader/
+
+test_results.txt
+train_trades_*
+trades_*.png
